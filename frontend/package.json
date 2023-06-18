@@ -1,0 +1,15 @@
+{
+  "scripts": {
+    "build": "esbuild ./src/index.jsx --bundle --minify --outdir=dist/js",
+    "serve": "esbuild ./src/index.jsx --bundle --outdir=dist/js --servedir=dist --serve=0.0.0.0:3000",
+    "test": "npm run check",
+    "check": "tsc --noEmit",
+    "format": "prettier --config .prettierrc 'src/**/*.{ts,tsx}' --write"
+  },
+  "devDependencies": {
+    "esbuild": "0.18.4",
+    "preact": "^10.15.0",
+    "prettier": "^2.8.8",
+    "typescript": "^5.0.4"
+  }
+}
