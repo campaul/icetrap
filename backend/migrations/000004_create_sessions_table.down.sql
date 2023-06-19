@@ -1,0 +1,5 @@
+ALTER TABLE games DROP COLUMN current_session CASCADE;
+
+DROP TABLE selections CASCADE;
+
+DROP TABLE sessions CASCADE;

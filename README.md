@@ -15,8 +15,8 @@ docker-compose up --build
 
 Run tests:
 ```
-docker-compose run backend go test
-docker-compose run frontend npm run test
+docker-compose run --rm backend go test
+docker-compose run --rm frontend npm run test
 ```
 
 Database console:
@@ -26,5 +26,5 @@ docker-compose run --rm postgres psql -h postgres -U postgres
 
 Run database migrations:
 ```
-docker-compose run backend sh migrate.sh
+docker-compose run --rm backend sh ./migrate.sh path/to/migration.sql
 ```

@@ -7,6 +7,7 @@ ARG env
 COPY go.mod go.sum ./
 
 RUN apk update
+RUN apk add postgresql
 RUN go mod download && go mod verify
 
 COPY . .

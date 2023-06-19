@@ -1,0 +1,3 @@
+DROP TABLE card_squares CASCADE;
+
+DROP TABLE cards CASCADE;
