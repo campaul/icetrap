@@ -1,6 +1,6 @@
 CREATE TABLE sessions (
     id bigserial PRIMARY KEY,
-    game_id uuid NOT NULL REFERENCES games(id)
+    game_id bigint NOT NULL REFERENCES games(id)
 );
 
 CREATE TABLE selections (
