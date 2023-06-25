@@ -9,6 +9,7 @@
   "devDependencies": {
     "esbuild": "0.18.4",
     "preact": "^10.15.0",
+    "preact-router": "^4.1.1",
     "prettier": "^2.8.8",
     "typescript": "^5.0.4"
   }
