@@ -103,3 +103,32 @@ func GetGame(id string, pool *pgxpool.Pool) (Game, error) {
 		Squares: needed_squares,
 	}, nil
 }
+
+func ToggleSquare(id string, squareId string, checked bool, pool *pgxpool.Pool) error {
+	// Get square and validate it belons to game
+	var gameIDCheck string
+	err := pool.QueryRow(context.Background(), "SELECT game_id FROM squares WHERE id = $1", id).Scan(&gameIDCheck)
+	if err != nil {
+		return err
+	}
+
+	if id != gameIDCheck {
+		// TODO: this should be an error
+		return nil
+	}
+
+	// Get the current session
+	var sessionId int
+	err = pool.QueryRow(context.Background(), "SELECT current_session FROM games WHERE id = $1", id).Scan(&sessionId)
+	if err != nil {
+		return err
+	}
+
+	// Set the current selection for square_id, session_id
+	_, err = pool.Exec(context.Background(), "INSERT INTO selections (square_id, session_id, selected) VALUES ($1, $2, $3) ON CONFLICT (square_id, session_id) DO UPDATE SET selected = excluded.selected", squareId, sessionId, checked)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

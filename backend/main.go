@@ -4,15 +4,28 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"icetrap/model"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"icetrap/model"
 )
 
 var pool *pgxpool.Pool
+
+const (
+	GameCheckSquare   string = "check_square"
+	GameUncheckSquare        = "uncheck_square"
+	GameNewSession           = "new_session"
+)
+
+type GameEvent struct {
+	EventType string
+	EventData string
+}
 
 func routeHandler(w http.ResponseWriter, r *http.Request) {
 	if strings.HasPrefix(r.URL.Path, "/api/game/") {
@@ -34,24 +47,52 @@ func gameHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	game, err := model.GetGame(id, pool)
+	if r.Method == http.MethodPost {
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			fmt.Println(err)
+			errorHandler(w, r)
+			return
+		}
 
-	if err != nil {
-		fmt.Println(err)
-		errorHandler(w, r)
-		return
+		g := GameEvent{}
+		if err := json.Unmarshal(body, &g); err != nil {
+			fmt.Println(err)
+			errorHandler(w, r)
+			return
+		}
+
+		if g.EventType == GameCheckSquare {
+			err = model.ToggleSquare(id, g.EventData, true, pool)
+		} else if g.EventType == GameUncheckSquare {
+			err = model.ToggleSquare(id, g.EventData, false, pool)
+		}
+
+		if err != nil {
+			fmt.Println(err)
+			errorHandler(w, r)
+			return
+		}
+	} else {
+		game, err := model.GetGame(id, pool)
+
+		if err != nil {
+			fmt.Println(err)
+			errorHandler(w, r)
+			return
+		}
+
+		j, err := json.Marshal(game)
+
+		if err != nil {
+			fmt.Println(err)
+			errorHandler(w, r)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(j)
 	}
-
-	j, err := json.Marshal(game)
-
-	if err != nil {
-		fmt.Println(err)
-		errorHandler(w, r)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(j)
 }
 
 func playHandler(w http.ResponseWriter, r *http.Request) {

@@ -20,11 +20,34 @@ interface GameState {
     loading: boolean,
 }
 
-const gameReducer = (state: GameState, action: GameState): GameState => {
-    return {
-        ...state,
-        ...action,
+interface GameAction {
+    type: string,
+    data: any,
+}
+
+const gameReducer = (state: GameState, action: GameAction): GameState => {
+    if (action.type === 'SET_STATE') {
+        return {
+            ...state,
+            ...action.data as GameState,
+        }
+    } else if (action.type = 'SELECT') {
+        return {
+            ...state,
+            squares: state.squares.map((s) => {
+                if (s.Id === action.data.id) {
+                    return {
+                        ...s,
+                        Selected: action.data.selected,
+                    }
+                }
+
+                return s;
+            }),
+        }
     }
+
+    return state;
 }
 
 const Game = (props: GameProps) => {
@@ -39,9 +62,12 @@ const Game = (props: GameProps) => {
             return res.json();
         }).then((json) => {
             dispatch({
-                title: json.Title,
-                squares: json.Squares,
-                loading: false,
+                type: 'SET_STATE',
+                data: {
+                    title: json.Title,
+                    squares: json.Squares,
+                    loading: false,
+                }
             })
         });
     }, []);
@@ -52,9 +78,34 @@ const Game = (props: GameProps) => {
         <h1>{message}</h1>
         <ul className="game">
             {game.squares.map((s: any) => {
+                const selectSquare = () => {
+                    const selected = !s.Selected;
+
+                    dispatch({
+                        type: 'SELECT',
+                        data: {
+                            id: s.Id,
+                            selected: selected,
+                        }
+                    })
+
+                    const event = {
+                        EventType: selected ? 'check_square' : 'uncheck_square',
+                        EventData: s.Id.toString(),
+                    }
+
+                    fetch(`/api/game/${props.game}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Tye': 'applicatio/json',
+                        },
+                        body: JSON.stringify(event),
+                    });
+                };
+
                 let className = s.Selected ? 'selected' : '';
                 className = s.Needed ? className + ' needed' : className;
-                return <li className={className}>{s.Title}</li>;
+                return <li className={className} onClick={selectSquare}>{s.Title}</li>;
             })}
         </ul>
     </div>;
@@ -86,16 +137,21 @@ const Card = (props: CardProps) => {
     });
 
     useEffect(() => {
-        fetch(`/api/card/${props.card}`).then((res) => {
-            return res.json();
-        }).then((json) => {
-            console.log(json);
-            dispatch({
-                title: 'Bingo Card',
-                squares: json.Squares,
-                loading: false,
-            })
-        });
+        const f = () => {
+            fetch(`/api/card/${props.card}`).then((res) => {
+                return res.json();
+            }).then((json) => {
+                dispatch({
+                    title: 'Bingo Card',
+                    squares: json.Squares,
+                    loading: false,
+                })
+            });
+        };
+
+        f();
+
+        setInterval(f, 5000);
     }, []);
 
     const message = card.loading ? 'Loading' : card.title;
